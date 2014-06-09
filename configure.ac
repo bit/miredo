@@ -82,6 +82,9 @@ case "${host_os}" in
 	*linux*)
 		hook_suffix=iproute
 		;;
+	*darwin*)
+		hook_suffix=darwin
+		;;
 	*)
 		hook_suffix=bsd
 		;;

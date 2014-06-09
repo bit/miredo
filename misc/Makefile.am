@@ -38,7 +38,7 @@ examples_DATA = miredo.conf miredo-server.conf
 	$(sed_verbose)sed -e 's,@sbindir\@,$(sbindir),g' < $< > $@
 
 # Hook scripts
-dist_noinst_SCRIPTS = client-hook.iproute client-hook.bsd
+dist_noinst_SCRIPTS = client-hook.iproute client-hook.bsd client-hook.darwin
 conf_SCRIPTS = client-hook
 
 client-hook: client-hook.$(hook_suffix)

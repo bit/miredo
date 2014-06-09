@@ -1,0 +1,48 @@
+#! /bin/sh
+#
+# Miredo client hook script for BSD
+
+IFCONFIG=/sbin/ifconfig
+ROUTE=/sbin/route
+NETSTAT=/usr/sbin/netstat
+
+if ! test -x "$IFCONFIG"; then
+    echo "$0: $IFCONFIG is required!" >&2
+    exit 1
+fi
+
+if ! test -x "$ROUTE"; then
+    echo "$0: $ROUTE is required!" >&2
+    exit 1
+fi
+
+if ! test -x "$NETSTAT"; then
+    echo "$0: $NETSTAT is required!" >&2
+    exit 1
+fi
+
+case "$STATE" in
+    up)
+        HAVE_DEFAULT=$($NETSTAT -rn -f inet6 | grep default | wc -l)
+        "$IFCONFIG" "$IFACE" up
+        "$IFCONFIG" "$IFACE" inet6 "${LLADDRESS}/64"
+        "$IFCONFIG" "$IFACE" inet6 "${ADDRESS}/128"
+        if [ $HAVE_DEFAULT -eq 0 ]; then
+            "$ROUTE" delete -inet6 default
+            "$ROUTE" add -inet6 default -iface "$IFACE"
+        else
+            "$ROUTE" -n delete -inet6 -net 2001::/32
+            "$ROUTE" -n add -inet6 -net 2001::/32 "${LLADDRESS}%$IFACE"
+        fi
+        ;;
+    down)
+        "$IFCONFIG" "$IFACE" down
+        ;;
+    destroy)
+        "$IFCONFIG" "$IFACE" destroy
+esac
+
+# MacOS X DNS resolver must be reloaded when IPv6 availability changes
+dscacheutil -flushcache
+
+exit 0
